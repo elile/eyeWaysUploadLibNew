@@ -4,18 +4,19 @@ import org.jwebsocket.api.WebSocketClientEvent;
 import org.jwebsocket.api.WebSocketClientTokenListener;
 import org.jwebsocket.api.WebSocketPacket;
 import org.jwebsocket.client.token.BaseTokenClient;
+import org.jwebsocket.kit.WebSocketException;
 import org.jwebsocket.token.Token;
 
 import Interfaces.InternalOnNewLocationArrive;
-import Interfaces.onNewLocationArrive;
 import Objects.eyeWaysLocation;
 import UTIL.Utils;
 import android.content.Context;
+import android.util.Log;
 
 public class SendAndReceive implements WebSocketClientTokenListener
 {
-	private static BaseTokenClient conn;
-	private String url = "ws://10.0.2.2:8181/";
+	private static BaseTokenClient conn = new BaseTokenClient();
+	private String url = "ws://192.168.1.13:8181/";
 	private int webSocketVersion = 76;
 	private Context c;
 	private String phoneSN;
@@ -26,23 +27,44 @@ public class SendAndReceive implements WebSocketClientTokenListener
 	{
 		this.c = c ;
 		phoneSN = Utils.getSN(c);
-		conn = new BaseTokenClient();
 		conn.addListener(this);
 		try {
-			conn.open(webSocketVersion, url);
+			if (!conn.isConnected()) {
+				conn.open(webSocketVersion, url);
+			}
+			Log.e("eli", "connected");
 		} catch (Exception e) {
 			e.printStackTrace();
+			Log.e("eli", "not connected");
 		}
 	}
 	
-	public void setOnNewLocationArrive(InternalOnNewLocationArrive LocCallBack) {
+	public void closeSocket()
+	{
+		if (conn.isConnected())
+		{
+			try {
+				conn.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	public void setOnInternalNewLocationArrive(InternalOnNewLocationArrive LocCallBack) {
 		this.LocCallBack = LocCallBack;
 	}
 	
 	public void send(String data)
 	{
 		try {
-			conn.sendText(phoneSN, data);
+			if (conn.isConnected())
+			{
+				conn.sendText(phoneSN, data);
+			}
+			else {
+				conn.open(webSocketVersion, url);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -55,7 +77,7 @@ public class SendAndReceive implements WebSocketClientTokenListener
 		LocObj.setFloor("floor : " + arg1.getUTF8());
 		LocObj.setMx("mx : " + arg1.getUTF8());
 		LocObj.setMy("my : " + arg1.getUTF8());
-		LocCallBack.LocationArrive(LocObj);
+		LocCallBack.InternalLocationArrive(LocObj);
 	}
 	
 	public static BaseTokenClient getConn() {
@@ -101,7 +123,7 @@ public class SendAndReceive implements WebSocketClientTokenListener
 	@Override
 	public void processClosed(WebSocketClientEvent arg0)
 	{
-		
+		Log.e("eli", "not connected");
 	}
 
 	@Override

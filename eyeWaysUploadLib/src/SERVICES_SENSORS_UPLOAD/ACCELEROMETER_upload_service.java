@@ -5,49 +5,61 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import DAL.SendAndReceive;
-import android.app.IntentService;
-import android.content.Intent;
+import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 
-public class ACCELEROMETER_upload_service extends IntentService implements SensorEventListener
+public class ACCELEROMETER_upload_service implements SensorEventListener
 {
 	static ScheduledExecutorService scheduleTaskExecutor;
-	private SensorManager sensorManager;
+	private static SensorManager sensorManager;
 	private String TextToSend;
-	private SendAndReceive sendNow;
+	private SendAndReceive dalSend;
+	private Context context;
+	private long startDelay;
+	private long periodDelayInMillis;
+	private boolean running;
+	private int threadPoolParam;
 
-	public ACCELEROMETER_upload_service(String name) {
-		super(name);
-		sensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
+	public ACCELEROMETER_upload_service(SendAndReceive dalSend) 
+	{
+		threadPoolParam = 2;
+		periodDelayInMillis = 200;
+		startDelay = 0 ;
+		running = false ;
 		TextToSend="";
-		//sendNow = new 
+		this.dalSend = dalSend;
+		context = dalSend.getC();
+		sensorManager = (SensorManager)context.getSystemService(Context.SENSOR_SERVICE);
 	}
 
-	@Override
-	public void onCreate() {
-		super.onCreate();
-		sensorManager.registerListener(this,
-				sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-				SensorManager.SENSOR_DELAY_NORMAL);
+	public void startSend()
+	{
+		if (!running) 
+		{
+			running = true ;
+			sensorManager.registerListener(this,
+					sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+					SensorManager.SENSOR_DELAY_NORMAL);
+			scheduleTaskExecutor = Executors.newScheduledThreadPool(threadPoolParam);
+			scheduleTaskExecutor.scheduleAtFixedRate(new Runnable() {
+				public void run() {
+					dalSend.send(TextToSend);
+				}
+			}, startDelay/*init delay*/, periodDelayInMillis/*period delay*/,
+					TimeUnit.MILLISECONDS);
+		}
 	}
 
-	@Override
-	protected void onHandleIntent(Intent intent) {
-		scheduleTaskExecutor = Executors.newScheduledThreadPool(1);
-		scheduleTaskExecutor.scheduleAtFixedRate(
-				new Runnable() {
-					public void run() {
-						
-					}
-				}, 0/*init delay*/, 1/*period delay*/, TimeUnit.SECONDS);
-		stopSelf();		
-	}
-	
-	public static void shutdownNow() {
-		scheduleTaskExecutor.shutdownNow();
+	public void shutdownNow() 
+	{
+		if (running) {
+			running = false ;
+			scheduleTaskExecutor.shutdownNow();
+			sensorManager.unregisterListener(this);
+		}
 	}
 
 	@Override
@@ -68,11 +80,29 @@ public class ACCELEROMETER_upload_service extends IntentService implements Senso
 			TextToSend = "ACCELEROMETER:"+x+"|"+y+"|"+z;
 		}			
 	}
-	
-	@Override
-	public void onDestroy() {
-		super.onDestroy();
-		sensorManager.unregisterListener(this);
+
+	public Context getContext() {
+		return context;
+	}
+
+	public void setContext(Context context) {
+		this.context = context;
+	}
+
+	public long getStartDelay() {
+		return startDelay;
+	}
+
+	public void setStartDelay(long startDelay) {
+		this.startDelay = startDelay;
+	}
+
+	public long getPeriodDelayInMillis() {
+		return periodDelayInMillis;
+	}
+
+	public void setPeriodDelayInMillis(long periodDelayInMillis) {
+		this.periodDelayInMillis = periodDelayInMillis;
 	}
 
 }

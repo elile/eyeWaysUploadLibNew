@@ -4,29 +4,105 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import android.app.IntentService;
-import android.content.Intent;
+import DAL.SendAndReceive;
+import android.content.Context;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 
-public class GAME_ROTATION_VECTOR_upload_service extends IntentService {
+public class GAME_ROTATION_VECTOR_upload_service implements SensorEventListener
+{
 	static ScheduledExecutorService scheduleTaskExecutor;
+	private static SensorManager sensorManager;
+	private String TextToSend;
+	private SendAndReceive dalSend;
+	private Context context;
+	private long startDelay;
+	private long periodDelayInMillis;
+	private boolean running;
+	private int threadPoolParam;
 
-	public GAME_ROTATION_VECTOR_upload_service(String name) {
-		super(name);
-		// TODO Auto-generated constructor stub
+	public GAME_ROTATION_VECTOR_upload_service(SendAndReceive dalSend) 
+	{
+		threadPoolParam = 2;
+		periodDelayInMillis = 200;
+		startDelay = 0 ;
+		running = false ;
+		TextToSend="";
+		this.dalSend = dalSend;
+		context = dalSend.getC();
+		sensorManager = (SensorManager)context.getSystemService(Context.SENSOR_SERVICE);
+	}
+
+	public void startSend()
+	{
+		if (!running) 
+		{
+			running = true ;
+			sensorManager.registerListener(this,
+					sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR),
+					SensorManager.SENSOR_DELAY_NORMAL);
+			scheduleTaskExecutor = Executors.newScheduledThreadPool(threadPoolParam);
+			scheduleTaskExecutor.scheduleAtFixedRate(new Runnable() {
+				public void run() {
+					dalSend.send(TextToSend);
+				}
+			}, startDelay/*init delay*/, periodDelayInMillis/*period delay*/,
+					TimeUnit.MILLISECONDS);
+		}
+	}
+
+	public void shutdownNow() 
+	{
+		if (running) {
+			running = false ;
+			scheduleTaskExecutor.shutdownNow();
+			sensorManager.unregisterListener(this);
+		}
 	}
 
 	@Override
-	protected void onHandleIntent(Intent intent) {
-		scheduleTaskExecutor = Executors.newScheduledThreadPool(1);
-		scheduleTaskExecutor.scheduleAtFixedRate(
-				new Runnable() {
-					public void run() {
-					}
-				}, 0/*init delay*/, 1/*period delay*/, TimeUnit.SECONDS);
-		stopSelf();		
+	public void onAccuracyChanged(Sensor arg0, int arg1) 
+	{
 	}
-	public static void sendInterupt() {
-		scheduleTaskExecutor.shutdownNow();
+
+	@Override
+	public void onSensorChanged(SensorEvent event) 
+	{
+		if (event.sensor.getType() == Sensor.TYPE_ROTATION_VECTOR) 
+		{
+			float[] values = event.values;
+			// Movement
+			float x = values[0];
+			float y = values[1];
+			float z = values[2];
+			TextToSend = "ROTATION_VECTOR:"+x+"|"+y+"|"+z;
+		}			
+	}
+
+	public Context getContext() {
+		return context;
+	}
+
+	public void setContext(Context context) {
+		this.context = context;
+	}
+
+	public long getStartDelay() {
+		return startDelay;
+	}
+
+	public void setStartDelay(long startDelay) {
+		this.startDelay = startDelay;
+	}
+
+	public long getPeriodDelayInMillis() {
+		return periodDelayInMillis;
+	}
+
+	public void setPeriodDelayInMillis(long periodDelayInMillis) {
+		this.periodDelayInMillis = periodDelayInMillis;
 	}
 
 }
