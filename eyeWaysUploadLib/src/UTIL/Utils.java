@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.security.SecureRandom;
 
 import android.content.Context;
+import android.os.Build;
 import android.telephony.TelephonyManager;
 
 public class Utils 
@@ -20,6 +21,15 @@ public class Utils
 			return new BigInteger(100, random).toString(32);
 		}
 		return uid;
+	}
+	
+	public static boolean isVersionHigherThen(int APIver)
+	{
+		if (Build.VERSION.SDK_INT >= APIver)
+		{
+			return true;
+		}
+		return false;
 	}
 
 

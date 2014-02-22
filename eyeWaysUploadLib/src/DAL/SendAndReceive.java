@@ -15,30 +15,28 @@ import android.util.Log;
 
 public class SendAndReceive implements WebSocketClientTokenListener
 {
-	private static BaseTokenClient conn = new BaseTokenClient();
-	private String url = "ws://192.168.1.13:8181/";
+	private static BaseTokenClient conn;
+	private String url = "ws://10.0.0.1:8181/";
 	private int webSocketVersion = 76;
 	private Context c;
 	private String phoneSN;
 	private InternalOnNewLocationArrive LocCallBack;
-	
+
 
 	public SendAndReceive(Context c)
 	{
 		this.c = c ;
+		conn = new BaseTokenClient();
 		phoneSN = Utils.getSN(c);
 		conn.addListener(this);
 		try {
-			if (!conn.isConnected()) {
-				conn.open(webSocketVersion, url);
-			}
+			conn.open(webSocketVersion, url);
 			Log.e("eli", "connected");
 		} catch (Exception e) {
-			e.printStackTrace();
 			Log.e("eli", "not connected");
 		}
 	}
-	
+
 	public void closeSocket()
 	{
 		if (conn.isConnected())
@@ -50,11 +48,11 @@ public class SendAndReceive implements WebSocketClientTokenListener
 			}
 		}
 	}
-	
+
 	public void setOnInternalNewLocationArrive(InternalOnNewLocationArrive LocCallBack) {
 		this.LocCallBack = LocCallBack;
 	}
-	
+
 	public void send(String data)
 	{
 		try {
@@ -62,14 +60,29 @@ public class SendAndReceive implements WebSocketClientTokenListener
 			{
 				conn.sendText(phoneSN, data);
 			}
-			else {
-				conn.open(webSocketVersion, url);
-			}
+//			else {
+//				conn.open(webSocketVersion, url);
+//			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
+
+	public void sendImage(final byte[] img)
+	{
+		Thread t = new Thread(
+				new Runnable() {
+					public void run() {
+						try {
+							conn.sendFile("Header", img, "name", null);
+						} catch (WebSocketException e) {e.printStackTrace();}
+					}
+				});
+		if (conn.isConnected()){
+			t.start();
+		}
+	}
+
 	@Override
 	public void processPacket(WebSocketClientEvent arg0, WebSocketPacket arg1) 
 	{
@@ -79,7 +92,7 @@ public class SendAndReceive implements WebSocketClientTokenListener
 		LocObj.setMy("my : " + arg1.getUTF8());
 		LocCallBack.InternalLocationArrive(LocObj);
 	}
-	
+
 	public static BaseTokenClient getConn() {
 		return conn;
 	}
@@ -119,35 +132,35 @@ public class SendAndReceive implements WebSocketClientTokenListener
 	public void setPhoneSN(String phoneSN) {
 		this.phoneSN = phoneSN;
 	}
-	
+
 	@Override
 	public void processClosed(WebSocketClientEvent arg0)
 	{
-		Log.e("eli", "not connected");
+
 	}
 
 	@Override
 	public void processOpened(WebSocketClientEvent arg0) 
 	{
-		
+
 	}
 
 	@Override
 	public void processOpening(WebSocketClientEvent arg0) 
 	{
-		
+
 	}
 
 	@Override
 	public void processReconnecting(WebSocketClientEvent arg0) 
 	{
-		
+
 	}
 
 	@Override
 	public void processToken(WebSocketClientEvent arg0, Token arg1) 
 	{
-		
+
 	}
 
 }

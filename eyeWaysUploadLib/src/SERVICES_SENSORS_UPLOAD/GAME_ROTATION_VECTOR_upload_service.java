@@ -41,7 +41,7 @@ public class GAME_ROTATION_VECTOR_upload_service implements SensorEventListener
 		{
 			running = true ;
 			sensorManager.registerListener(this,
-					sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR),
+					sensorManager.getDefaultSensor(Sensor.TYPE_GAME_ROTATION_VECTOR),
 					SensorManager.SENSOR_DELAY_NORMAL);
 			scheduleTaskExecutor = Executors.newScheduledThreadPool(threadPoolParam);
 			scheduleTaskExecutor.scheduleAtFixedRate(new Runnable() {
@@ -70,14 +70,14 @@ public class GAME_ROTATION_VECTOR_upload_service implements SensorEventListener
 	@Override
 	public void onSensorChanged(SensorEvent event) 
 	{
-		if (event.sensor.getType() == Sensor.TYPE_ROTATION_VECTOR) 
+		if (event.sensor.getType() == Sensor.TYPE_GAME_ROTATION_VECTOR) 
 		{
 			float[] values = event.values;
 			// Movement
 			float x = values[0];
 			float y = values[1];
 			float z = values[2];
-			TextToSend = "ROTATION_VECTOR:"+x+"|"+y+"|"+z;
+			TextToSend = "GAME_ROTATION_VECTOR:"+x+"|"+y+"|"+z;
 		}			
 	}
 
