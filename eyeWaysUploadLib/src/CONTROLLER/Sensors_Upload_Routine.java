@@ -1,7 +1,6 @@
 package CONTROLLER;
 
 import DAL.SendAndReceive;
-import Interfaces.InternalOnNewLocationArrive;
 import Interfaces.onNewLocationArrive;
 import Objects.eyeWaysLocation;
 import SERVICES_SENSORS_UPLOAD.ACCELEROMETER_upload_service;
@@ -17,7 +16,7 @@ import SERVICES_SENSORS_UPLOAD.SIGNIFICANT_MOTION_upload_service;
 import UTIL.Utils;
 import android.content.Context;
 
-public class Sensors_Upload_Routine implements InternalOnNewLocationArrive
+public class Sensors_Upload_Routine
 {
 	private Context c;
 	private SendAndReceive send;
@@ -35,14 +34,13 @@ public class Sensors_Upload_Routine implements InternalOnNewLocationArrive
 	private SIGNIFICANT_MOTION_upload_service sigMotion;
 
 
-	public Sensors_Upload_Routine(final Context c) 
+	public Sensors_Upload_Routine(SendAndReceive sendReceive) 
 	{
-		this.c = c;
+		this.c = sendReceive.getC();
+		this.send = sendReceive;
 		Thread t = new Thread(
 				new Runnable() {
 					public void run() {
-						send = new SendAndReceive(c);
-						send.setOnInternalNewLocationArrive(Sensors_Upload_Routine.this);
 						// ---- all servicess init here ------
 						accelometer = new ACCELEROMETER_upload_service(send);
 						gameRotVect = new GAME_ROTATION_VECTOR_upload_service(send);
@@ -195,15 +193,6 @@ public class Sensors_Upload_Routine implements InternalOnNewLocationArrive
 		if (Utils.isVersionHigherThen(3)) 
 			accelometer.startSend();
 	}
-
-	
-
-	@Override
-	public void InternalLocationArrive(eyeWaysLocation location) 
-	{
-		nNewLocationArrive.LocationArrive(location);				
-	}
-
 
 
 }

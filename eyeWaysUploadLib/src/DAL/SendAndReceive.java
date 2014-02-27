@@ -7,7 +7,7 @@ import org.jwebsocket.client.token.BaseTokenClient;
 import org.jwebsocket.kit.WebSocketException;
 import org.jwebsocket.token.Token;
 
-import Interfaces.InternalOnNewLocationArrive;
+import Interfaces.onNewLocationArrive;
 import Objects.eyeWaysLocation;
 import UTIL.Utils;
 import android.content.Context;
@@ -16,11 +16,15 @@ import android.util.Log;
 public class SendAndReceive implements WebSocketClientTokenListener
 {
 	private static BaseTokenClient conn;
-	private String url = "ws://10.0.0.1:8181/";
+	private String url = "ws://192.168.1.103:31285/"; //192.168.1.103, 172.20.10.3 , 10.0.2.2, elivm.cloudapp.net , eliwebsocket.cloudapp.net   
 	private int webSocketVersion = 76;
 	private Context c;
 	private String phoneSN;
-	private InternalOnNewLocationArrive LocCallBack;
+	private onNewLocationArrive LocCallBack;
+	private int numOfImg =1 ;
+	private String jpgEnd = ".jpg";
+
+
 
 
 	public SendAndReceive(Context c)
@@ -30,7 +34,12 @@ public class SendAndReceive implements WebSocketClientTokenListener
 		phoneSN = Utils.getSN(c);
 		conn.addListener(this);
 		try {
-			conn.open(webSocketVersion, url);
+			new Thread(
+					new Runnable() {
+						public void run() {
+							conn.open(webSocketVersion, url);
+						}
+					}).start();
 			Log.e("eli", "connected");
 		} catch (Exception e) {
 			Log.e("eli", "not connected");
@@ -49,20 +58,20 @@ public class SendAndReceive implements WebSocketClientTokenListener
 		}
 	}
 
-	public void setOnInternalNewLocationArrive(InternalOnNewLocationArrive LocCallBack) {
+	public void setOnNewLocationArrive(onNewLocationArrive LocCallBack) {
 		this.LocCallBack = LocCallBack;
 	}
 
 	public void send(String data)
 	{
 		try {
-			if (conn.isConnected())
+			if (conn.isConnected() && data.compareTo("")!=0)
 			{
 				conn.sendText(phoneSN, data);
 			}
-//			else {
-//				conn.open(webSocketVersion, url);
-//			}
+			//			else {
+			//				conn.open(webSocketVersion, url);
+			//			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -74,8 +83,15 @@ public class SendAndReceive implements WebSocketClientTokenListener
 				new Runnable() {
 					public void run() {
 						try {
-							conn.sendFile("Header", img, "name", null);
-						} catch (WebSocketException e) {e.printStackTrace();}
+							//							Log.e("eli", "size before commpress: " + img.length);
+							//							byte[] imgCompress1 = MyByteArrayCompress.compressByteArray(img);
+							//							Log.e("eli", "size after commpress: " + imgCompress1.length);
+							//							byte[] imgCompress2 = LZ.compress(imgCompress1, 3);
+							//							Log.e("eli", "size after commpress: " + imgCompress2.length);
+							conn.sendFile("", img, phoneSN+"-"+numOfImg+jpgEnd, null);
+							numOfImg++;
+						} catch (WebSocketException e)
+						{  e.printStackTrace();  }
 					}
 				});
 		if (conn.isConnected()){
@@ -90,7 +106,7 @@ public class SendAndReceive implements WebSocketClientTokenListener
 		LocObj.setFloor("floor : " + arg1.getUTF8());
 		LocObj.setMx("mx : " + arg1.getUTF8());
 		LocObj.setMy("my : " + arg1.getUTF8());
-		LocCallBack.InternalLocationArrive(LocObj);
+		LocCallBack.LocationArrive(LocObj);
 	}
 
 	public static BaseTokenClient getConn() {
@@ -136,7 +152,9 @@ public class SendAndReceive implements WebSocketClientTokenListener
 	@Override
 	public void processClosed(WebSocketClientEvent arg0)
 	{
-
+		Log.e("eli", "close");
+		Log.e("eli", arg0.getData());
+		Log.e("eli", arg0.getName());
 	}
 
 	@Override
