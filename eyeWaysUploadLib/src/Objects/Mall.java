@@ -32,6 +32,10 @@ public class Mall {
 	public Mall() 
 	{
 	}
+	@Override
+	public String toString() {
+		return "Mall [id=" + id + ", dns=" + dns + ", name=" + name + "]";
+	}
 	
 	
 

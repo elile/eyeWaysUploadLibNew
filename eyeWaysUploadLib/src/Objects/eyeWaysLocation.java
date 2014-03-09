@@ -6,6 +6,12 @@ public class eyeWaysLocation
 	private String my;
 	private String floor;
 
+	@Override
+	public String toString() {
+		return "eyeWaysLocation [mx=" + mx + ", my=" + my + ", floor=" + floor
+				+ "]";
+	}
+
 	public eyeWaysLocation(String mx, String my, String floor) 
 	{
 		this.mx = mx;

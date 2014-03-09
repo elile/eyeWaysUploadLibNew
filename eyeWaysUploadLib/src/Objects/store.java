@@ -50,6 +50,12 @@ public class store
 	public void setExtra(String extra) {
 		this.extra = extra;
 	}
+
+	@Override
+	public String toString() {
+		return "store [name=" + name + ", coordinate=" + coordinate
+				+ ", extra=" + extra + "]";
+	}
 	
 	
 

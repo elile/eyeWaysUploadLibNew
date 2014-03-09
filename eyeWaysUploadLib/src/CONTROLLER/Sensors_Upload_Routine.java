@@ -1,8 +1,6 @@
 package CONTROLLER;
 
 import DAL.SendAndReceive;
-import Interfaces.onNewLocationArrive;
-import Objects.eyeWaysLocation;
 import SERVICES_SENSORS_UPLOAD.ACCELEROMETER_upload_service;
 import SERVICES_SENSORS_UPLOAD.GAME_ROTATION_VECTOR_upload_service;
 import SERVICES_SENSORS_UPLOAD.GEOMETRIC_ROTATION_VECTOR_upload_service;
@@ -14,13 +12,10 @@ import SERVICES_SENSORS_UPLOAD.ORIENTATION_upload_service;
 import SERVICES_SENSORS_UPLOAD.ROTATION_VECTOR_upload_service;
 import SERVICES_SENSORS_UPLOAD.SIGNIFICANT_MOTION_upload_service;
 import UTIL.Utils;
-import android.content.Context;
 
 public class Sensors_Upload_Routine
 {
-	private Context c;
 	private SendAndReceive send;
-	private onNewLocationArrive nNewLocationArrive;
 
 	private ACCELEROMETER_upload_service accelometer;
 	private GAME_ROTATION_VECTOR_upload_service gameRotVect;
@@ -36,7 +31,6 @@ public class Sensors_Upload_Routine
 
 	public Sensors_Upload_Routine(SendAndReceive sendReceive) 
 	{
-		this.c = sendReceive.getC();
 		this.send = sendReceive;
 		Thread t = new Thread(
 				new Runnable() {
@@ -62,11 +56,7 @@ public class Sensors_Upload_Routine
 		}
 	}
 
-	public void setOnNewLocationArrive(onNewLocationArrive nNewLocationArrive) 
-	{
-		this.nNewLocationArrive = nNewLocationArrive;
-	}
-
+	
 	public void start()
 	{
 		start_accelometer();
