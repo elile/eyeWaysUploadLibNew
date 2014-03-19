@@ -103,11 +103,11 @@ public class SendAndReceive implements WebSocketClientTokenListener
 				new Runnable() {
 					public void run() {
 						try {
-							//							Log.e("eli", "size before commpress: " + img.length);
-							//							byte[] imgCompress1 = MyByteArrayCompress.compressByteArray(img);
-							//							Log.e("eli", "size after commpress: " + imgCompress1.length);
-							//							byte[] imgCompress2 = LZ.compress(imgCompress1, 3);
-							//							Log.e("eli", "size after commpress: " + imgCompress2.length);
+							//				Log.e("eli", "size before commpress: " + img.length);
+							//				byte[] imgCompress1 = MyByteArrayCompress.compressByteArray(img);
+							//				Log.e("eli", "size after commpress: " + imgCompress1.length);
+							//				byte[] imgCompress2 = LZ.compress(imgCompress1, 3);
+							//				Log.e("eli", "size after commpress: " + imgCompress2.length);
 							conn.sendFile("", img, phoneSN+"-"+numOfImg+jpgEnd, null);
 							numOfImg++;
 						} catch (WebSocketException e)
@@ -247,7 +247,6 @@ public class SendAndReceive implements WebSocketClientTokenListener
 	{
 		Log.e("eli", "close");
 		Log.e("eli", arg0.getData());
-		Log.e("eli", arg0.getName());
 	}
 
 	@Override
